@@ -17,6 +17,8 @@ export default function DashboardPage() {
     lessons: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [showLevelUp, setShowLevelUp] = useState(false)
+  const [levelUpData, setLevelUpData] = useState({ newLevel: 1 })
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -48,6 +50,44 @@ export default function DashboardPage() {
       console.error('Error cargando datos:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCompleteTask = async (task: any) => {
+    if (task.completed) return
+
+    // Para tareas automáticas (como pasear), no permitir completar manualmente
+    if (task.id === '1' || task.id === '4') {
+      return
+    }
+
+    try {
+      const res = await fetch('/api/tasks/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task.id, taskXp: task.xp }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        
+        // Marcar tarea como completada localmente
+        setTasks(tasks.map(t => 
+          t.id === task.id ? { ...t, completed: true, progress: 100 } : t
+        ))
+
+        // Mostrar animación de nivel si subió
+        if (data.leveledUp) {
+          setLevelUpData({ newLevel: data.newLevel })
+          setShowLevelUp(true)
+          setTimeout(() => setShowLevelUp(false), 3000)
+        }
+
+        // Recargar datos
+        await loadData()
+      }
+    } catch (error) {
+      console.error('Error completando tarea:', error)
     }
   }
 
@@ -167,6 +207,8 @@ export default function DashboardPage() {
                   progress={task.progress}
                   current={task.current}
                   target={task.target}
+                  onClick={() => handleCompleteTask(task)}
+                  isAutomatic={task.id === '1'}
                 />
               ))}
             </div>
@@ -204,6 +246,29 @@ export default function DashboardPage() {
           </div>
           <span className="text-4xl">🏆</span>
         </motion.button>
+
+        {/* Animación de Level Up */}
+        {showLevelUp && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-gradient-to-br from-yellow-500/90 to-orange-500/90 flex items-center justify-center z-50"
+          >
+            <div className="text-center text-white">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.2, 1] }}
+                transition={{ duration: 0.5 }}
+                className="text-8xl mb-6"
+              >
+                🎉
+              </motion.div>
+              <h2 className="text-6xl font-bold mb-4">¡NIVEL {levelUpData.newLevel}!</h2>
+              <p className="text-2xl">¡Felicidades por tu progreso!</p>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   )
@@ -230,9 +295,20 @@ function QuickAction({ icon, label, color, onClick }: any) {
   )
 }
 
-function TaskItem({ title, reward, completed, progress, current, target }: any) {
+function TaskItem({ title, reward, completed, progress, current, target, onClick, isAutomatic }: any) {
   return (
-    <div className="p-4 rounded-xl bg-white/50 hover:bg-white/70 transition-all">
+    <motion.div
+      whileHover={!completed && !isAutomatic ? { scale: 1.02 } : {}}
+      whileTap={!completed && !isAutomatic ? { scale: 0.98 } : {}}
+      onClick={!completed && !isAutomatic ? onClick : undefined}
+      className={`p-4 rounded-xl transition-all ${
+        completed 
+          ? 'bg-green-50 border-2 border-green-200' 
+          : isAutomatic
+          ? 'bg-white/50'
+          : 'bg-white/50 hover:bg-white/70 cursor-pointer hover:shadow-md'
+      }`}
+    >
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
           completed ? 'bg-green-500 border-green-500' : 'border-gray-300'
@@ -240,7 +316,13 @@ function TaskItem({ title, reward, completed, progress, current, target }: any) 
           {completed && <span className="text-white text-xs">✓</span>}
         </div>
         <div className="flex-1">
-          <p className={`font-medium ${completed ? 'line-through text-gray-500' : ''}`}>{title}</p>
+          <p className={`font-medium ${completed ? 'line-through text-gray-500' : ''}`}>
+            {title}
+            {isAutomatic && !completed && <span className="text-xs text-gray-500 ml-2">(automático)</span>}
+          </p>
+          {!completed && !isAutomatic && (
+            <p className="text-xs text-gray-500">Toca para completar</p>
+          )}
         </div>
         <span className="badge-3d text-xs">+{reward} XP</span>
       </div>
@@ -259,7 +341,13 @@ function TaskItem({ title, reward, completed, progress, current, target }: any) 
           </div>
         </div>
       )}
-    </div>
+
+      {completed && (
+        <div className="ml-9 text-xs text-green-600 font-medium">
+          ✓ Completado
+        </div>
+      )}
+    </motion.div>
   )
 }
 

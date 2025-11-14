@@ -56,6 +56,10 @@ export async function GET() {
     const todayWalkRecords = allTodayWalkRecords.filter(record => record.duration !== null)
     const todayMinutes = todayWalkRecords.reduce((sum, record) => sum + (record.duration || 0), 0)
 
+    // Obtener tareas completadas manualmente hoy (usando una tabla temporal en memoria por ahora)
+    // En producción, deberías usar una tabla TaskCompletion
+    const completedTasksToday = new Set<string>() // TODO: Cargar desde DB
+    
     // Crear lista de tareas con progreso
     const tasks = [
       {
@@ -66,27 +70,30 @@ export async function GET() {
         completed: todayMinutes >= 15,
         progress: Math.min(100, Math.round((todayMinutes / 15) * 100)),
         current: todayMinutes,
-        target: 15
+        target: 15,
+        automatic: true
       },
       {
         id: '2',
         title: 'Completar 1 lección',
         xp: 15,
         type: 'DAILY',
-        completed: false,
-        progress: 0,
-        current: 0,
-        target: 1
+        completed: completedTasksToday.has('2'),
+        progress: completedTasksToday.has('2') ? 100 : 0,
+        current: completedTasksToday.has('2') ? 1 : 0,
+        target: 1,
+        automatic: false
       },
       {
         id: '3',
         title: 'Publicar en Social',
         xp: 10,
         type: 'DAILY',
-        completed: false,
-        progress: 0,
-        current: 0,
-        target: 1
+        completed: completedTasksToday.has('3'),
+        progress: completedTasksToday.has('3') ? 100 : 0,
+        current: completedTasksToday.has('3') ? 1 : 0,
+        target: 1,
+        automatic: false
       },
       {
         id: '4',
@@ -96,17 +103,19 @@ export async function GET() {
         completed: weekWalks >= 5,
         progress: Math.min(100, Math.round((weekWalks / 5) * 100)),
         current: weekWalks,
-        target: 5
+        target: 5,
+        automatic: true
       },
       {
         id: '5',
         title: 'Agregar 3 amigos',
         xp: 30,
         type: 'WEEKLY',
-        completed: false,
-        progress: 0,
-        current: 0,
-        target: 3
+        completed: completedTasksToday.has('5'),
+        progress: completedTasksToday.has('5') ? 100 : 0,
+        current: completedTasksToday.has('5') ? 3 : 0,
+        target: 3,
+        automatic: false
       }
     ]
 
