@@ -4,7 +4,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Activity, Heart, BookOpen, Camera, Award, TrendingUp, Target, Dog } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import toast from 'react-hot-toast'
 
 export default function DashboardPage() {
   const { data: session, status, update } = useSession()
@@ -19,16 +20,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [levelUpData, setLevelUpData] = useState({ newLevel: 1 })
+  const hasLoadedRef = useRef(false)
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    } else if (status === 'authenticated') {
-      loadData()
-    }
-  }, [status, router])
-
-  const loadData = async () => {
+  const loadData = useCallback(async (skipSessionUpdate = false) => {
     try {
       // Cargar tareas
       const tasksRes = await fetch('/api/tasks')
@@ -44,14 +38,25 @@ export default function DashboardPage() {
         setStats(statsData.stats || {})
       }
 
-      // Actualizar sesión
-      await update()
+      // Solo actualizar sesión si se solicita explícitamente
+      if (skipSessionUpdate === false) {
+        await update()
+      }
     } catch (error) {
       console.error('Error cargando datos:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [update])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    } else if (status === 'authenticated' && !hasLoadedRef.current) {
+      hasLoadedRef.current = true
+      loadData(true) // No actualizar session en carga inicial
+    }
+  }, [status, router, loadData])
 
   const handleCompleteTask = async (task: any) => {
     if (task.completed) return
@@ -76,6 +81,8 @@ export default function DashboardPage() {
           t.id === task.id ? { ...t, completed: true, progress: 100 } : t
         ))
 
+        toast.success(`¡Tarea completada! +${task.xp} XP`)
+
         // Mostrar animación de nivel si subió
         if (data.leveledUp) {
           setLevelUpData({ newLevel: data.newLevel })
@@ -83,11 +90,12 @@ export default function DashboardPage() {
           setTimeout(() => setShowLevelUp(false), 3000)
         }
 
-        // Recargar datos
-        await loadData()
+        // Actualizar session para reflejar nuevo XP
+        await update()
       }
     } catch (error) {
       console.error('Error completando tarea:', error)
+      toast.error('Error al completar tarea')
     }
   }
 
