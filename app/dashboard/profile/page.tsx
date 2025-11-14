@@ -1,11 +1,13 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
-import { LogOut, User as UserIcon } from 'lucide-react'
+import { LogOut, User as UserIcon, Settings, Award, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
 export default function ProfilePage() {
   const { data: session } = useSession()
+  const router = useRouter()
 
   if (!session?.user?.dog) {
     return null
@@ -39,6 +41,39 @@ export default function ProfilePage() {
             <p><span className="font-semibold">XP Total:</span> {dog.xp}</p>
             <p><span className="font-semibold">Email:</span> {session.user.email}</p>
           </div>
+        </div>
+
+        {/* Opciones */}
+        <div className="space-y-3">
+          <button
+            onClick={() => router.push('/dashboard/achievements')}
+            className="card-glass w-full p-4 flex items-center justify-between hover:scale-105 transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <Award className="text-accent-600" size={24} />
+              <span className="font-medium">Mis Logros</span>
+            </div>
+            <span>→</span>
+          </button>
+
+          <button
+            onClick={() => router.push('/dashboard/health')}
+            className="card-glass w-full p-4 flex items-center justify-between hover:scale-105 transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="text-red-600" size={24} />
+              <span className="font-medium">Datos de Salud</span>
+            </div>
+            <span>→</span>
+          </button>
+
+          <button className="card-glass w-full p-4 flex items-center justify-between hover:scale-105 transition-transform">
+            <div className="flex items-center gap-3">
+              <Settings className="text-gray-600" size={24} />
+              <span className="font-medium">Configuración</span>
+            </div>
+            <span>→</span>
+          </button>
         </div>
 
         {/* Cerrar sesión */}
