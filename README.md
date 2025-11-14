@@ -1,4 +1,4 @@
-# 🐕 DogDogGo - Red Social Gamificada para Perros
+# 🐾 Pawdona - Red Social Gamificada para Perros
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
@@ -62,7 +62,7 @@ Abre http://localhost:3000 🎉
 1. **Push a GitHub**
    ```bash
    git add .
-   git commit -m "feat: DogDogGo Next.js"
+   git commit -m "feat: Pawdona Next.js"
    git push
    ```
 

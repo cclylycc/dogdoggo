@@ -92,7 +92,14 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
             <Dog className="w-12 h-12 text-primary-600" />
-            <h1 className="text-4xl font-bold text-gradient">DogDogGo</h1>
+            <div className="flex flex-col items-center gap-4 mb-2">
+              <img 
+                src="/logo.png" 
+                alt="Pawdona Logo" 
+                className="h-24 w-auto"
+              />
+              <h1 className="text-4xl font-bold text-gradient">Pawdona</h1>
+            </div>
           </div>
           <p className="text-gray-600">
             {step === 1 ? 'Primero, tus datos' : 'Ahora, cuéntanos de tu perro 🐶'}

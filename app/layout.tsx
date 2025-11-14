@@ -7,7 +7,7 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'DogDogGo - Red Social para Perros',
+  title: 'Pawdona - Red Social para Perros',
   description: 'Plataforma gamificada de socialización para mascotas',
   keywords: ['perros', 'mascotas', 'social', 'gamificación', 'paseos'],
 }

@@ -56,7 +56,14 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
             <Dog className="w-12 h-12 text-primary-600" />
-            <h1 className="text-4xl font-bold text-gradient">DogDogGo</h1>
+            <div className="flex flex-col items-center gap-4 mb-2">
+              <img 
+                src="/logo.png" 
+                alt="Pawdona Logo" 
+                className="h-24 w-auto"
+              />
+              <h1 className="text-4xl font-bold text-gradient">Pawdona</h1>
+            </div>
           </div>
           <p className="text-gray-600">¡Bienvenido de vuelta! 🐾</p>
         </div>
@@ -140,7 +147,7 @@ export default function LoginPage() {
           {/* Demo Account */}
           <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
             <p className="text-sm font-semibold text-blue-900 mb-2">🎯 Cuenta Demo:</p>
-            <p className="text-xs text-blue-700">Email: demo@dogdoggo.com</p>
+            <p className="text-xs text-blue-700">Email: demo@pawdona.com</p>
             <p className="text-xs text-blue-700">Contraseña: demo123</p>
           </div>
 

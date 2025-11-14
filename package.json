@@ -1,7 +1,7 @@
 {
-  "name": "dogdoggo-nextjs",
+  "name": "pawdona-nextjs",
   "version": "2.0.0",
-  "description": "DogDogGo - Plataforma gamificada para mascotas optimizada para Vercel",
+  "description": "Pawdona - Plataforma gamificada para mascotas optimizada para Vercel",
   "private": true,
   "scripts": {
     "dev": "next dev",

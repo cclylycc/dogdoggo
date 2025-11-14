@@ -10,9 +10,13 @@ export default function LandingPage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-white/70 border-b border-white/20">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Dog className="w-8 h-8 text-primary-600" />
-            <span className="text-2xl font-bold text-gradient">DogDogGo</span>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo.png" 
+              alt="Pawdona Logo" 
+              className="h-10 w-auto"
+            />
+            <span className="text-2xl font-bold text-gradient">Pawdona</span>
           </div>
           
           <div className="flex items-center gap-4">
@@ -91,7 +95,7 @@ export default function LandingPage() {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-4 text-gradient">
-            ¿Por qué DogDogGo?
+            ¿Por qué Pawdona?
           </h2>
           <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">
             Más que una app, es una comunidad donde cada paseo cuenta
@@ -155,7 +159,7 @@ export default function LandingPage() {
               ¿Listo para la aventura?
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Únete a miles de perros que ya están disfrutando de DogDogGo
+              Únete a miles de perros que ya están disfrutando de Pawdona
             </p>
             
             <Link href="/register">
@@ -176,7 +180,7 @@ export default function LandingPage() {
             Hecho con ❤️ para los amigos perrunos
           </p>
           <p className="text-sm">
-            © 2024 DogDogGo. Madrid Hackathon Project.
+            © 2024 Pawdona. Madrid Hackathon Project.
           </p>
         </div>
       </footer>
