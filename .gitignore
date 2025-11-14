@@ -38,12 +38,4 @@ next-env.d.ts
 # prisma
 /prisma/migrations/
 
-# old files from previous architecture
-/client/
-/server/
-INSTALL.md
-QUICK_START.md
-MONGODB_ATLAS_SETUP.md
-DEPLOY_VERCEL.md
-VERCEL_QUICKSTART.md
-README.md
+# old files from previous architecture (already deleted)
