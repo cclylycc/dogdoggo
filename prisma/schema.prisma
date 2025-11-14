@@ -1,0 +1,380 @@
+// Prisma Schema para DogDogGo
+// Compatible con Vercel Postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== MODELOS ====================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  dog Dog?
+}
+
+model Dog {
+  id            String   @id @default(cuid())
+  name          String
+  breed         String
+  gender        Gender
+  isNeutered    Boolean  @default(false)
+  birthDate     DateTime
+  age           Int      @default(0)
+  weight        Float    @default(0)
+  size          Size     @default(MEDIUM)
+  bodyCondition BodyCondition @default(NORMAL)
+  avatar        String?
+  coverImage    String?
+
+  // Gamificación
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  xpToNextLevel Int      @default(100)
+  mood          Mood     @default(HAPPY)
+
+  // Personalidad (JSON)
+  personalityTraits Json?
+  sensitivities     Json?
+  socialPreferences Json?
+  personalityScores Json?
+
+  // Ubicación
+  latitude  Float?
+  longitude Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  walks           WalkRecord[]
+  healthRecords   HealthRecord[]
+  posts           Post[]
+  comments        Comment[]
+  likes           Like[]
+  achievements    UserAchievement[]
+  courseProgress  CourseProgress[]
+  matchesInitiated Match[] @relation("InitiatorDog")
+  matchesReceived  Match[] @relation("TargetDog")
+  friends         Friendship[] @relation("DogFriends")
+  friendOf        Friendship[] @relation("FriendOfDog")
+
+  @@index([latitude, longitude])
+}
+
+model WalkRecord {
+  id           String    @id @default(cuid())
+  dogId        String
+  startTime    DateTime
+  endTime      DateTime?
+  duration     Int       @default(0) // minutos
+  distance     Float?    // kilómetros
+  latitude     Float?
+  longitude    Float?
+  address      String?
+  isMatchedWalk Boolean  @default(false)
+  matchedWith  Json?     // Array de dog IDs
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  // Relaciones
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([dogId, startTime])
+}
+
+model HealthRecord {
+  id          String       @id @default(cuid())
+  dogId       String
+  type        HealthType
+  date        DateTime
+  weight      Float?
+  foodAmount  String?
+  waterAmount String?
+  stoolCondition String?
+  vaccineName String?
+  vaccineType String?
+  dewormerType String?
+  illness     String?
+  treatment   String?
+  surgery     String?
+  allergen    String?
+  notes       String?
+  createdAt   DateTime     @default(now())
+
+  // Relaciones
+  dog Dog @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([dogId, date])
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  type        TaskType
+  category    TaskCategory
+  xpReward    Int
+  icon        String       @default("✓")
+  requirements Json?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Course {
+  id                String         @id @default(cuid())
+  title             String
+  description       String
+  category          CourseCategory
+  difficulty        Difficulty     @default(BEGINNER)
+  estimatedDuration Int            // minutos
+  xpReward          Int
+  thumbnail         String?
+  lessons           Json           // Array de lecciones
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relaciones
+  progress CourseProgress[]
+}
+
+model CourseProgress {
+  id               String    @id @default(cuid())
+  dogId            String
+  courseId         String
+  completedLessons Json      // Array de lesson IDs
+  currentLesson    Int       @default(0)
+  progress         Int       @default(0)
+  isCompleted      Boolean   @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relaciones
+  dog    Dog    @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([dogId, courseId])
+}
+
+model Achievement {
+  id           String              @id @default(cuid())
+  title        String
+  description  String
+  icon         String
+  category     AchievementCategory
+  tier         Tier                @default(BRONZE)
+  requirements Json
+  xpReward     Int
+  isSecret     Boolean             @default(false)
+  createdAt    DateTime            @default(now())
+
+  // Relaciones
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String    @id @default(cuid())
+  dogId         String
+  achievementId String
+  progress      Int       @default(0)
+  isUnlocked    Boolean   @default(false)
+  unlockedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relaciones
+  dog         Dog         @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([dogId, achievementId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  dogId     String
+  content   String
+  images    Json?    // Array de URLs
+  hashtags  Json?    // Array de strings
+  latitude  Float?
+  longitude Float?
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  dog      Dog       @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  likes    Like[]
+  comments Comment[]
+
+  @@index([createdAt])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  dogId     String
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  dog  Dog  @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, dogId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  dogId     String
+  content   String
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  dog  Dog  @relation(fields: [dogId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model Match {
+  id                   String      @id @default(cuid())
+  initiatorDogId       String
+  targetDogId          String
+  compatibilityScore   Int
+  compatibilityDetails Json?
+  status               MatchStatus @default(PENDING)
+  meetingDetails       Json?
+  rating               Json?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  // Relaciones
+  initiatorDog Dog @relation("InitiatorDog", fields: [initiatorDogId], references: [id], onDelete: Cascade)
+  targetDog    Dog @relation("TargetDog", fields: [targetDogId], references: [id], onDelete: Cascade)
+
+  @@index([initiatorDogId])
+  @@index([targetDogId])
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  dogId     String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  dog    Dog @relation("DogFriends", fields: [dogId], references: [id], onDelete: Cascade)
+  friend Dog @relation("FriendOfDog", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([dogId, friendId])
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Size {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum BodyCondition {
+  THIN
+  NORMAL
+  OVERWEIGHT
+}
+
+enum Mood {
+  VERY_HAPPY
+  HAPPY
+  NORMAL
+  SAD
+  BORED
+}
+
+enum HealthType {
+  WEIGHT
+  FOOD
+  WATER
+  STOOL
+  VACCINE
+  DEWORMING
+  ILLNESS
+  SURGERY
+  ALLERGY
+}
+
+enum TaskType {
+  DAILY
+  WEEKLY
+  SPECIAL
+}
+
+enum TaskCategory {
+  WALK
+  HEALTH
+  SOCIAL
+  LEARNING
+}
+
+enum CourseCategory {
+  BEHAVIOR
+  PSYCHOLOGY
+  TRAINING
+  HEALTH
+  SOCIALIZATION
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum AchievementCategory {
+  BEHAVIOR
+  SOCIAL
+  HEALTH
+  LEARNING
+  SPECIAL
+}
+
+enum Tier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
