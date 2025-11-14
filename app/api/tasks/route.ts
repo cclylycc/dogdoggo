@@ -46,16 +46,14 @@ export async function GET() {
     })
 
     // Obtener total de minutos de walks hoy
-    const todayWalkRecords = await prisma.walkRecord.findMany({
+    const allTodayWalkRecords = await prisma.walkRecord.findMany({
       where: {
         dogId: session.user.dog.id,
-        startTime: { gte: today },
-        NOT: {
-          duration: null
-        }
+        startTime: { gte: today }
       },
       select: { duration: true }
     })
+    const todayWalkRecords = allTodayWalkRecords.filter(record => record.duration !== null)
     const todayMinutes = todayWalkRecords.reduce((sum, record) => sum + (record.duration || 0), 0)
 
     // Crear lista de tareas con progreso

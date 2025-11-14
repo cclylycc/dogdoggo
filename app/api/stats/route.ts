@@ -15,17 +15,17 @@ export async function GET() {
     weekAgo.setDate(weekAgo.getDate() - 7)
     weekAgo.setHours(0, 0, 0, 0)
 
-    // Obtener walks de esta semana
-    const weekWalkRecords = await prisma.walkRecord.findMany({
+    // Obtener walks de esta semana con duration
+    const allWeekWalkRecords = await prisma.walkRecord.findMany({
       where: {
         dogId: session.user.dog.id,
-        startTime: { gte: weekAgo },
-        NOT: {
-          duration: null
-        }
+        startTime: { gte: weekAgo }
       },
       select: { duration: true }
     })
+    
+    // Filtrar los que tienen duration
+    const weekWalkRecords = allWeekWalkRecords.filter(record => record.duration !== null)
 
     // Calcular estadísticas
     const weekWalks = weekWalkRecords.length

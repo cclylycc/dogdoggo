@@ -1,0 +1,42 @@
+/* Estilos adicionales para el efecto Tinder */
+.card-stack {
+  perspective: 1000px;
+}
+
+.swipe-card {
+  touch-action: none;
+  user-select: none;
+}
+
+.swipe-card img {
+  pointer-events: none;
+}
+
+/* Animación de match */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.heartbeat {
+  animation: heartbeat 0.6s ease-in-out infinite;
+}
+
+/* Efecto de brillo en el botón de corazón */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 77, 55, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 77, 55, 0.8);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
