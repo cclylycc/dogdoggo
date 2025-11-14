@@ -80,9 +80,22 @@ export default function WalkPage() {
         const data = await res.json()
         setIsWalking(false)
         setCurrentWalkId(null)
-        toast.success(`¡Paseo completado! +${data.xpEarned || 20} XP`)
+        
+        // Mostrar resultados
+        let message = `¡Paseo completado! +${data.xpEarned} XP`
+        
+        if (data.tasksCompleted && data.tasksCompleted.length > 0) {
+          message += `\n✅ Tareas completadas: ${data.tasksCompleted.join(', ')}`
+        }
+        
+        if (data.leveledUp) {
+          message += `\n🎉 ¡Nivel ${data.newLevel}!`
+        }
+        
+        toast.success(message, { duration: 4000 })
+        
         loadRecentWalks()
-        setTimeout(() => router.push('/dashboard'), 1500)
+        setTimeout(() => router.push('/dashboard'), 2000)
       }
     } catch (error) {
       toast.error('Error al finalizar paseo')

@@ -7,20 +7,49 @@ import { Activity, Heart, BookOpen, Camera, Award, TrendingUp, Target, Dog } fro
 import { useEffect, useState } from 'react'
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
+  const [tasks, setTasks] = useState<any[]>([])
   const [stats, setStats] = useState({
-    totalWalks: 0,
-    coursesCompleted: 0,
-    friendsCount: 0,
-    achievementsUnlocked: 0,
+    walks: 0,
+    minutes: 0,
+    posts: 0,
+    lessons: 0,
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
+    } else if (status === 'authenticated') {
+      loadData()
     }
   }, [status, router])
+
+  const loadData = async () => {
+    try {
+      // Cargar tareas
+      const tasksRes = await fetch('/api/tasks')
+      if (tasksRes.ok) {
+        const tasksData = await tasksRes.json()
+        setTasks(tasksData.tasks || [])
+      }
+
+      // Cargar estadísticas
+      const statsRes = await fetch('/api/stats')
+      if (statsRes.ok) {
+        const statsData = await statsRes.json()
+        setStats(statsData.stats || {})
+      }
+
+      // Actualizar sesión
+      await update()
+    } catch (error) {
+      console.error('Error cargando datos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (status === 'loading') {
     return (
@@ -125,11 +154,23 @@ export default function DashboardPage() {
             Tareas de Hoy
           </h2>
           
-          <div className="space-y-3">
-            <TaskItem title="Paseo diario" reward={20} completed={false} />
-            <TaskItem title="Registrar peso" reward={5} completed={false} />
-            <TaskItem title="Completar lección" reward={15} completed={false} />
-          </div>
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Cargando tareas...</div>
+          ) : (
+            <div className="space-y-3">
+              {tasks.filter(t => t.type === 'DAILY').map(task => (
+                <TaskItem 
+                  key={task.id}
+                  title={task.title}
+                  reward={task.xp}
+                  completed={task.completed}
+                  progress={task.progress}
+                  current={task.current}
+                  target={task.target}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Estadísticas */}
@@ -140,10 +181,10 @@ export default function DashboardPage() {
           </h2>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard value={stats.totalWalks} label="Paseos" color="blue" />
-            <StatCard value={stats.coursesCompleted} label="Cursos" color="purple" />
-            <StatCard value={stats.friendsCount} label="Amigos" color="green" />
-            <StatCard value={stats.achievementsUnlocked} label="Logros" color="yellow" />
+            <StatCard value={stats.walks} label="Paseos" color="blue" icon="🦴" />
+            <StatCard value={stats.minutes} label="Minutos" color="purple" icon="⏱️" />
+            <StatCard value={stats.posts} label="Posts" color="green" icon="📷" />
+            <StatCard value={stats.lessons} label="Lecciones" color="yellow" icon="📚" />
           </div>
         </div>
 
@@ -189,21 +230,40 @@ function QuickAction({ icon, label, color, onClick }: any) {
   )
 }
 
-function TaskItem({ title, reward, completed }: any) {
+function TaskItem({ title, reward, completed, progress, current, target }: any) {
   return (
-    <div className="flex items-center gap-3 p-4 rounded-xl bg-white/50 hover:bg-white/70 transition-all">
-      <div className={`w-6 h-6 rounded-full border-2 ${completed ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
-        {completed && <span className="text-white text-xs">✓</span>}
+    <div className="p-4 rounded-xl bg-white/50 hover:bg-white/70 transition-all">
+      <div className="flex items-center gap-3 mb-2">
+        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+          completed ? 'bg-green-500 border-green-500' : 'border-gray-300'
+        }`}>
+          {completed && <span className="text-white text-xs">✓</span>}
+        </div>
+        <div className="flex-1">
+          <p className={`font-medium ${completed ? 'line-through text-gray-500' : ''}`}>{title}</p>
+        </div>
+        <span className="badge-3d text-xs">+{reward} XP</span>
       </div>
-      <div className="flex-1">
-        <p className="font-medium">{title}</p>
-      </div>
-      <span className="badge-3d text-xs">+{reward} XP</span>
+      
+      {!completed && progress > 0 && (
+        <div className="ml-9">
+          <div className="flex justify-between text-xs text-gray-600 mb-1">
+            <span>{current} / {target}</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="progress-bar-animated">
+            <div 
+              className="progress-fill-animated" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function StatCard({ value, label, color }: any) {
+function StatCard({ value, label, color, icon }: any) {
   const colorClasses: any = {
     blue: 'bg-blue-50 text-blue-600',
     purple: 'bg-purple-50 text-purple-600',
@@ -212,7 +272,8 @@ function StatCard({ value, label, color }: any) {
   }
 
   return (
-    <div className={`p-4 rounded-xl ${colorClasses[color]}`}>
+    <div className={`p-4 rounded-xl text-center ${colorClasses[color]}`}>
+      <div className="text-2xl mb-1">{icon}</div>
       <div className="text-3xl font-bold">{value}</div>
       <div className="text-sm mt-1 opacity-80">{label}</div>
     </div>
